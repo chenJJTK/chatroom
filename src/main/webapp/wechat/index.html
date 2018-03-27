@@ -11,7 +11,7 @@
         cursor:pointer;
     }
     input:disabled {
-        cursor: not-allowed; 
+        cursor: not-allowed;
     }
     #msg {
         width: 510px;
@@ -82,7 +82,8 @@
         height: 255px;
         overflow: auto;
     }
-    .userList div{
+    .userList div,
+    .getback{
         cursor: pointer;
         color: blue
     }
@@ -116,26 +117,17 @@
     // 连接
     function link() {
         name = document.getElementById('username').value || "sb";
-        ws = new WebSocket("ws://localhost/ws?name=" + name);
+        ws = new WebSocket("ws://172.16.40.205:8123/charroom/ws?name=" + name);
 
         /*
          *监听三种状态的变化 。js会回调
          */
         ws.onopen = function(message) {
-            // var $text = $("<div/>",{
-            //     text: "WebSocket:欢迎来到英雄联盟"
-            // });
-            // var $div = $("#showChatMessage");
-            // $div.append($text);
             $("#msg,#sendBn,#loginout,#changeName").prop("disabled", false);
             $("#link").prop("disabled", true)
         };
         ws.onclose = function(message) {
-            // var text = document.createTextNode("WebSocket:结束聊天");
-            // var br = document.createElement("br")
-            // var div = document.getElementById("showChatMessage");
-            // div.appendChild(text);
-            // div.appendChild(br);
+
             var data = message.data ? JSON.parse(message.data) : {
                     fromName: "系统提示",
                     messageText: "与服务器断开连接",
@@ -161,22 +153,6 @@
             } else{
                 showMessage(data);
             } 
-            // else if (data.type == 1) {
-            //     name = data.fromName + " 对" 
-            //     showMessage(data.messageText, data.fromName, true);
-            // } else if (data.type == 0) {
-            //     showMessage(data.messageText, data.fromName);
-            // }
-                // if  {
-                //     if (data.fromName == "系统提示") {
-                //         showMessage(data.messageText, data.fromName, true);
-                //     } else {
-                //         showMessage(data.messageText, data.fromName);
-                //     }
-                // } else {
-                //     showMessage(data.messageText);
-                // }
-            
         };
     }
 
@@ -217,7 +193,6 @@
             }
             data = JSON.stringify(data)
             ws.send(data)
-            // showMessage(name + ":"+text);
             $input.val("");
         }
     }
@@ -288,10 +263,7 @@
             // clean();
             uid = $this.attr("uid");
             $(".title").css("display","block").find(".title-name").text(username);
-            // 另一个是在中间显示与xxx聊天 不清记录
-            // var message = "正在与 " + username + " 私聊"
-            // uid = $this.attr("uid");
-            // showMessage(message,"系统提示",true)
+
         }        
     })
     // 退出 
