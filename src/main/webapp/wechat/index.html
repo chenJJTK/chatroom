@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>wechat</title>
+    <script src="./js/jquery-min.js"></script>
+
+    <style>
+    input[type="button"] {
+        cursor:pointer;
+    }
+    input:disabled {
+        cursor: not-allowed;
+    }
+    #msg {
+        width: 510px;
+        position: absolute;
+        bottom: 0;
+    }
+    #showChatMessage {
+        overflow-y: auto;
+        height: 390px;
+        padding: 5px 10px;
+    }
+    #clean {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+    #sendBn {
+        position: absolute;
+        bottom: 0;
+        right: 43px;
+    }
+    #username {
+        width: 420px;
+    }
+    #link {
+        position: absolute;
+        right: 85px;
+    }
+    #changeName {
+        position: absolute;
+        right: 43px;
+    }
+    #loginout {
+        position: absolute;
+        right: 0;
+    }
+    #userList-outer {
+        position: absolute;
+        left: -220px;
+        width: 200px;
+        height: 300px;
+        border: 1px solid #333;
+        padding: 5px;
+        overflow: hidden;
+        ellipsis
+    }
+    .title {
+        display: none;
+        position: absolute;
+        top: -30px;
+        width: 200px;
+        border: 1px solid #333;
+        text-align: center;
+        margin: auto;
+        left: 0;
+        right: 0;
+        border-radius: 5px;
+    }
+    .title-name {
+        padding: 0 5px;
+        color: red
+    }
+    .getback {
+        position: absolute; 
+        bottom: 0
+    }
+    .userList {
+        height: 255px;
+        overflow: auto;
+    }
+    .userList div{
+        cursor: pointer;
+        color: blue
+    }
+    </style>
+</head>
+
+<body>
+    <div style="width: 600px; height: 440px; border: 1px solid #333;position: relative;margin: 50px auto;" id="show">
+        <div id="userList-outer">
+            <label for="">当前用户：</label>
+            <div class="userList"></div>
+            <div class="getback">返回聊天室</div>
+        </div>
+        <div class="title">正在与<span class='title-name'></span>聊天</div>
+        <label for="">昵称：</label>
+        <input type="text" size="80" id="username" name="username" placeholder="输入昵称" value="sb" onclick="JavaScript:this.value=''" />
+        <input type="button" value="连接" id="link" onclick="link()">
+        <input type="button" value="改名" id="changeName" onclick="changeName()" disabled="true">
+        <input type="button" value="退出" id="loginout" onclick="loginout()" disabled="true">
+        <div id="showChatMessage"></div>
+        <!-- <input type="text" size="80" id="username" name="username" placeholder="输入昵称" /> -->
+        <input type="text" size="80" id="msg" name="msg" placeholder="输入聊天内容" disabled="true" />
+        <input type="button" value="发送" id="sendBn" name="sendBn" onclick="send()" disabled="true">
+        <input type="button" value="清屏" id="clean" onclick="clean()">
+    </div>
+    <script type="text/javascript">
+    // var name=prompt("先生，麻烦签个名：","sb");
+    var ws, name,
+        uid="";
+
+    // 连接
+    function link() {
+        name = document.getElementById('username').value || "sb";
+        ws = new WebSocket("ws://localhost/ws?name=" + name);
+
+        /*
+         *监听三种状态的变化 。js会回调
+         */
+        ws.onopen = function(message) {
+            // var $text = $("<div/>",{
+            //     text: "WebSocket:欢迎来到英雄联盟"
+            // });
+            // var $div = $("#showChatMessage");
+            // $div.append($text);
+            $("#msg,#sendBn,#loginout,#changeName").prop("disabled", false);
+            $("#link").prop("disabled", true)
+        };
+        ws.onclose = function(message) {
+            // var text = document.createTextNode("WebSocket:结束聊天");
+            // var br = document.createElement("br")
+            // var div = document.getElementById("showChatMessage");
+            // div.appendChild(text);
+            // div.appendChild(br);
+            var data = message.data ? JSON.parse(message.data) : {
+                    fromName: "系统提示",
+                    messageText: "与服务器断开连接",
+                    type: 2
+                };
+            showMessage(data);
+            $("#msg,#sendBn,#loginout,#changeName").prop("disabled", true)
+            $("#link").prop("disabled", false)
+        };
+        ws.onmessage = function(message) {
+            var data = JSON.parse(message.data);
+            // 用户列表数据
+            if (data.aboutUser) {
+                $(".userList").empty()
+                $.each(data.users, function(i, v) {
+                    var user = $("<div/>", {
+                        text: v.name,
+                        uid: v.uid
+                    })
+                    $("#userList-outer label").text("当前在线人数："+data.count)
+                    $(".userList").append(user)
+                })
+            } else{
+                showMessage(data);
+            } 
+            // else if (data.type == 1) {
+            //     name = data.fromName + " 对" 
+            //     showMessage(data.messageText, data.fromName, true);
+            // } else if (data.type == 0) {
+            //     showMessage(data.messageText, data.fromName);
+            // }
+                // if  {
+                //     if (data.fromName == "系统提示") {
+                //         showMessage(data.messageText, data.fromName, true);
+                //     } else {
+                //         showMessage(data.messageText, data.fromName);
+                //     }
+                // } else {
+                //     showMessage(data.messageText);
+                // }
+            
+        };
+    }
+
+    //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+    window.onbeforeunload = function() {
+        ws.close();
+    };
+
+    //关闭连接
+    function closeWebSocket() {
+        ws.close();
+    }
+    // 改名
+    function changeName(){
+        name = $("#username").val();
+        var data = {
+            type: 3 ,
+            fromName: name
+        }
+        data = JSON.stringify(data)
+        ws.send(data)
+        document.cookie = "name:"+ name
+    }
+    
+    // 退出
+    function loginout() {
+        ws.close();
+    }
+
+    //发送消息
+    function send() {
+        var $input = $("#msg"),
+            content = $input.val();
+        if (content) {
+            var data = {
+                messageText: content,
+                toId: uid
+            }
+            data = JSON.stringify(data)
+            ws.send(data)
+            // showMessage(name + ":"+text);
+            $input.val("");
+        }
+    }
+
+    function showMessage(data) {
+        var message = data.messageText,
+            name = data.fromName,
+            type = data.type,
+            toName = data.toName,
+            content = name ? name + ": " + message : message;
+            $text = $("<div/>");
+        if (type == 2) {
+            $text.css({
+                "text-align":"center",
+                "color":"red",
+                "font-size":"14px",
+                "line-height":"20px"
+            })
+        } else if (type == 1) {
+            content = name + "对" + toName + "说： " + message;
+            $text.css({
+                "color": "#7E4DD0"
+            })
+        }
+        $text.text(content)
+        var $div = $("#showChatMessage");
+        $div.append($text);
+        // 发送后滚到最低
+        var scrollDiv = $('#showChatMessage');  
+        scrollDiv.scrollTop(scrollDiv[0].scrollHeight);  
+    }
+
+    function getNowFormatDate() {
+        var myDate = new Date();
+        myDate.getYear(); //获取当前年份(2位)  
+        myDate.getFullYear(); //获取完整的年份(4位,1970-????)  
+        myDate.getMonth(); //获取当前月份(0-11,0代表1月)  
+        myDate.getDate(); //获取当前日(1-31)  
+        myDate.getDay(); //获取当前星期X(0-6,0代表星期天)  
+        myDate.getTime(); //获取当前时间(从1970.1.1开始的毫秒数)  
+        myDate.getHours(); //获取当前小时数(0-23)  
+        myDate.getMinutes(); //获取当前分钟数(0-59)  
+        myDate.getSeconds(); //获取当前秒数(0-59)  
+        myDate.getMilliseconds(); //获取当前毫秒数(0-999)  
+        myDate.toLocaleDateString(); //获取当前日期  
+        var mytime = myDate.toLocaleTimeString(); //获取当前时间  
+        return myDate.toLocaleString(); //获取日期与时间  
+    }
+    // 清屏
+    function clean() {
+        $("#showChatMessage").empty();
+    }
+
+    // 回车事件
+    $(document).on("keyup", "#msg", function(e) {
+        if (e.keyCode === 13) {
+            $("#sendBn").click();
+        }
+    })
+    // 用户列表
+    $(document).on("click", ".userList div",function() { 
+        var $this = $(this),
+            username = $this.text();
+        if (username == name ){
+            $(".getback").click();
+        } else {
+            // 两个版本 一个是清空聊天记录 在上方显示与xxx聊天
+            // clean();
+            uid = $this.attr("uid");
+            $(".title").css("display","block").find(".title-name").text(username);
+            // 另一个是在中间显示与xxx聊天 不清记录
+            // var message = "正在与 " + username + " 私聊"
+            // uid = $this.attr("uid");
+            // showMessage(message,"系统提示",true)
+        }        
+    })
+    // 退出 
+    $("#loginout").on("click",function(){
+        loginout();
+    })
+    // 返回聊天室
+    $(".getback").on("click",function(){
+        uid ="";
+        $(".title").css("display","none").find(".title-name").text("")
+    })
+    function getCookie(name) {
+        var arr = document.cookie.replace(/\s/g, "").split(';');
+        for (var i = 0; i < arr.length; i++) {
+            var tempArr = arr[i].split('=');
+            if (tempArr[0] == name) {
+                return decodeURIComponent(tempArr[1]);
+            }
+        }
+        return '';
+    }
+    if (getCookie("name")) {
+        $("#username").val(getCookie("name"))
+    }
+    </script>
+</body>
+
+</html>

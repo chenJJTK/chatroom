@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.hhit:framework:1.0.2-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/hhit/framework/1.0.2-SNAPSHOT/framework-1.0.2-20180228.014535-2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/hhit/framework/1.0.2-SNAPSHOT/framework-1.0.2-20180228.014535-2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/hhit/framework/1.0.2-SNAPSHOT/framework-1.0.2-20180228.014535-2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

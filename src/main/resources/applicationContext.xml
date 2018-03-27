@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc
+						http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-4.2.xsd
+						http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+						http://www.springframework.org/schema/tx
+						http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-4.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+    <mvc:resources mapping="/**" location="/"/>
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean
+                    class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="objectMapper">
+                    <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+                        <!-- 处理responseBody 里面日期类型 -->
+                        <property name="dateFormat">
+                            <bean class="java.text.SimpleDateFormat">
+                                <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss"/>
+                            </bean>
+                        </property>
+                        <!-- 时区指定 -->
+                        <property name="timeZone" value="GMT+8"/>
+                    </bean>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+    <context:component-scan base-package="chars"/>
+    <!--<tx:annotation-driven transaction-manager="transactionManager"/>-->
+    <aop:aspectj-autoproxy/>
+    <task:annotation-driven scheduler="myScheduler"/>
+   <task:scheduler id="myScheduler" pool-size="5"/>
+    <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+        <property name="urlMap">
+            <map>
+                <entry key="/System/**" value="System"/>
+            </map>
+        </property>
+        <property name="order" value="100000"/>
+    </bean>
+    <bean id="System" name="System"
+          class="org.springframework.web.servlet.resource.ResourceHttpRequestHandler">
+        <property name="locations" value="/System/"/>
+        <property name="supportedMethods">
+            <list>
+                <value>GET</value>
+                <value>HEAD</value>
+                <value>POST</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 使properties属性可以在配置文件中被引用 -->
+    <!--<bean-->
+            <!--class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">-->
+        <!--<property name="properties" ref="properties"/>-->
+        <!--<property name="fileEncoding" value="utf8"/>-->
+    <!--</bean>-->
+    <!-- 使properties属性可以通过@Value注解获取 -->
+    <!--<bean id="properties"-->
+          <!--class="org.springframework.beans.factory.config.PropertiesFactoryBean">-->
+        <!--<property name="locations">-->
+            <!--<list>-->
+                <!--<value>classpath:common/jdbc.properties</value>-->
+                <!--<value>classpath:common/config.properties</value>-->
+            <!--</list>-->
+        <!--</property>-->
+    <!--</bean>-->
+    <!-- 加密 properties 文件 后使用 -->
+    <!-- <bean id="properties" class="com.hhit.framework.encrypt.EncryptPropertiesFactory">
+        <property name="locations"> <list> <value>classpath:common/jdbc.properties</value>
+        <value>classpath:common/white.properties</value> </list> </property> </bean> -->
+    <bean
+            class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <!--<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">-->
+        <!--<property name="dataSource">-->
+            <!--<ref bean="dataSource"/>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">-->
+        <!--<property name="driverClassName" value="${jdbc.driverClassName}"/>-->
+        <!--<property name="url" value="${jdbc.url}"/>-->
+        <!--<property name="username" value="${jdbc.username}"/>-->
+        <!--<property name="password" value="${jdbc.password}"/>-->
+        <!--&lt;!&ndash; 配置初始化大小、最小、最大 &ndash;&gt;-->
+        <!--<property name="initialSize" value="1"/>-->
+        <!--<property name="minIdle" value="1"/>-->
+        <!--<property name="maxActive" value="100"/>-->
+
+        <!--&lt;!&ndash; 配置获取连接等待超时的时间 &ndash;&gt;-->
+        <!--<property name="maxWait" value="10000"/>-->
+
+        <!--&lt;!&ndash; 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 &ndash;&gt;-->
+        <!--<property name="timeBetweenEvictionRunsMillis" value="60000"/>-->
+
+        <!--&lt;!&ndash; 配置一个连接在池中最小生存的时间，单位是毫秒 &ndash;&gt;-->
+        <!--<property name="minEvictableIdleTimeMillis" value="300000"/>-->
+
+        <!--<property name="testWhileIdle" value="true"/>-->
+
+        <!--&lt;!&ndash; 这里建议配置为TRUE，防止取到的连接不可用 &ndash;&gt;-->
+        <!--<property name="testOnBorrow" value="true"/>-->
+        <!--<property name="testOnReturn" value="false"/>-->
+
+        <!--&lt;!&ndash; 打开PSCache，并且指定每个连接上PSCache的大小 &ndash;&gt;-->
+        <!--<property name="poolPreparedStatements" value="true"/>-->
+        <!--<property name="maxPoolPreparedStatementPerConnectionSize"-->
+                  <!--value="20"/>-->
+
+        <!--&lt;!&ndash; 这里配置提交方式，默认就是TRUE，可以不用配置 &ndash;&gt;-->
+
+        <!--<property name="defaultAutoCommit" value="true"/>-->
+
+        <!--&lt;!&ndash; 验证连接有效与否的SQL，不同的数据配置不同 &ndash;&gt;-->
+        <!--<property name="validationQuery" value="select 1 "/>-->
+        <!--<property name="filters" value="stat"/>-->
+
+    <!--</bean>-->
+
+    <!--<bean name="transactionManager"-->
+          <!--class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+        <!--<property name="dataSource" ref="dataSource"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+        <!--<property name="dataSource" ref="dataSource"/>-->
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml"/>-->
+        <!--<property name="mapperLocations" value="classpath*:*/*Mapper.xml">-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!--<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">-->
+        <!--<constructor-arg index="0" ref="sqlSessionFactory"/>-->
+    <!--</bean>-->
+
+    <!--<import resource="classpath:**/*-spring.xml"/>-->
+
+    <!-- 支持上传文件 -->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+    <!--&lt;!&ndash; 数据库脚本自动执行 &ndash;&gt;-->
+    <!--<bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">-->
+        <!--<property name="dataSource" ref="dataSource"/>-->
+        <!--<property name="baselineOnMigrate" value="true"/>-->
+    <!--</bean>-->
+
+    <!-- 验证码 -->
+    <bean id="captcha" class="cn.walink.code.Captcha">
+        <property name="fontttf" value="0.ttf"></property>
+    </bean>
+</beans>
